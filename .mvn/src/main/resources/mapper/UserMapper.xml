@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="com.neuedu.catshop.mapper.UserMapper">
+ 	
+ 	<sql id="selectsql">
+	select userId,nickName,userName,email, phone,address,pic from user 
+	</sql>
+
+	<select id="findAll" resultType="User">
+		<include refid="selectsql" />
+	</select>
+	
+	 <select id="findListByPager" parameterType="Pages"
+		resultType="User">
+		<include refid="selectsql" />
+		<where>
+			<if test="condition !=null and condition.userName != null"> 
+			userName like concat('%',concat(#{condition.userName},'%')) 
+		    </if>
+		</where>
+		order by userId desc limit #{start},#{size}
+	</select>
+
+	<select id="findTotalByPager" parameterType="Pages"
+		resultType="int">
+		select count(*) from user
+		<where>
+			<if test="condition !=null and condition.userName != null"> 
+			userName like concat('%',concat(#{condition.userName},'%')) 
+			</if>
+		</where>
+	</select>
+
+
+	<select id="findById" parameterType="int" resultType="User">
+		<include refid="selectsql" /> 
+		where userId = #{userId}
+	</select>
+
+	<insert id="add" parameterType="User">
+		insert into user(nickName,userName,email,phone,address,pic) 
+		values(#{nickName},#{userName},#{email},#{phone},#{address},#{pic})
+		<selectKey keyColumn="userId" keyProperty="userId"
+			order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+	<update id="edit" parameterType="User">
+		update user
+		<set>
+			<if test="nickName !=null"> nickName = #{nickName},</if>
+			<if test="userName !=null"> userName = #{userName},</if>
+			<if test="email !=null"> email = #{email},</if>
+			<if test="phone !=null"> phone = #{phone},</if>
+			<if test="address !=null"> address = #{address},</if>
+			<if test="pic !=null"> pic = #{pic},</if>
+		</set>
+		where userId = #{userId}
+	</update>
+
+	<delete id="deleteByIds" parameterType="list">
+		<if test="list!=null and list.size !=0">
+			delete from user where userId in
+			<foreach collection="list" item="user" open="("
+				separator="," close=")">
+				#{user.userId}
+			</foreach>
+		</if>
+	</delete>
+ 
+ 	
+ 	
+ </mapper>

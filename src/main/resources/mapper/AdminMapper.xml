@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.catshop.mapper.AdminMapper">
+
+	<resultMap type="Admin" id="adminMap">
+		<id property="adminId" column="adminId" />
+		<result property="adminName" column="adminName" />
+		<result property="password" column="password" />
+		<result property="pic" column="pic" />
+	</resultMap>
+
+	<sql id="selectsql">
+		select adminId,adminName,password,pic from admin
+	</sql>
+
+	<select id="login" parameterType="Admin" resultMap="adminMap">
+		<include refid="selectsql" />
+		where adminName=#{adminName} and password=#{password}
+	</select>
+	
+	<!-- <select id="findByName" parameterType="Admin" resultMap="adminMap">
+		<include refid="selectsql" />
+		where adminName=#{adminName}
+	</select> -->
+
+	<select id="findListByPager" parameterType="Pages"
+		resultMap="adminMap">
+		<include refid="selectsql" />
+		<where>
+			<if test="condition !=null and condition.adminName != null"> 
+			adminName like concat('%',concat(#{condition.adminName},'%')) 
+		    </if>
+		</where>
+		limit #{start},#{size}
+	</select>
+
+	<select id="findTotalByPager" parameterType="Pages"
+		resultType="int">
+		select count(*) from admin
+		<where>
+			<if test="condition !=null and condition.adminName != null"> 
+			adminName like concat('%',concat(#{condition.adminName},'%')) 
+		    </if>
+		</where>
+	</select>
+
+	<insert id="add" parameterType="Admin">
+		insert into admin values(null,#{adminName},#{password},#{pic})
+		<!-- goods_id是自增列，可以通过selectkey 查询自增列的值，并绑定到对于的属性中 -->
+		<selectKey keyColumn="adminId" keyProperty="adminId"
+			order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+	<update id="edit" parameterType="Admin">
+		update admin
+		<set>
+			<if test="adminName!=null and adminName!=''">
+				adminName=#{adminName},
+			</if>
+			<if test="password!=null and password!=''">
+				password=#{password},
+			</if>
+			<if test="pic!=null and pic!=''">
+				pic=#{pic},
+			</if>
+		</set>
+		where adminId = #{adminId}
+	</update>
+
+	<delete id="deleteByIds" parameterType="list">
+		<if test="list!=null and list.size !=0">
+			delete from admin where adminId in
+			<foreach collection="list" item="admin" open="(" separator=","
+				close=")">
+				#{admin.adminIds}
+			</foreach>
+		</if>
+	</delete>
+
+
+</mapper>

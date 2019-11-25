@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="com.neuedu.catshop.mapper.KindMapper">
+ 	<!-- <resultMap type="Kind" id="kindMap">
+ 		<id column="kindId" property="kindId"/>
+ 		<result column="kindName" property="kindName"/>
+ 		<result column="kindImage" property="kindImage"/>
+ 	</resultMap> -->
+ 	
+ 	<sql id="selectsql">
+	select kindId,kindName,kindImage from kind 
+	</sql>
+
+	<select id="findAll" resultType="Kind">
+		<include refid="selectsql" />
+	</select>
+
+	 <select id="findListByPager" parameterType="Pages"
+		resultType="Kind">
+		<include refid="selectsql" />
+		<where>
+			<if test="condition !=null and condition.kindName != null"> 
+			kindName like concat('%',concat(#{condition.kindName},'%')) 
+		    </if>
+		</where>
+		order by kindId desc limit #{start},#{size}
+	</select>
+
+	<!-- <select id="findTotalByPager" parameterType="Pages"
+		resultType="int">
+		select count(*) from kind
+		<where>
+			<if test="condition !=null and condition.kindName != null"> 
+			kindName like concat('%',concat(#{condition.kindName},'%')) 
+			</if>
+		</where>
+	</select> -->
+
+
+	<select id="findById" parameterType="int" resultType="Kind">
+		<include refid="selectsql" /> 
+		where kindId = #{kindId}
+	</select>
+
+	<insert id="add" parameterType="Kind">
+		insert into kind(kindName,kindImage) values(#{kindName},#{kindImage})
+		<selectKey keyColumn="kindId" keyProperty="kindId"
+			order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+	<update id="edit" parameterType="Kind">
+		update kind
+		<set>
+			<if test="kindName !=null"> kindName = #{kindName},</if>
+			<if test="kindImage !=null"> kindImage = #{kindImage},</if>
+		</set>
+		where kindId = #{kindId}
+	</update>
+
+	<delete id="deleteByIds" parameterType="list">
+		<if test="list!=null and list.size !=0">
+			delete from kind where kindId in
+			<foreach collection="list" item="kind" open="("
+				separator="," close=")">
+				#{kind.kindId}
+			</foreach>
+		</if>
+	</delete>
+ 
+ 	
+ 	
+ </mapper>

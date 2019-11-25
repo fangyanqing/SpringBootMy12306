@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="com.neuedu.catshop.mapper.OrderInfoMapper">
+ 	<resultMap type="OrderInfo" id="orderInfoMap">
+ 		<id column="orderId" property="orderId"/>
+ 		<result column="num" property="num"/>
+ 		<result column="orderState" property="orderState"/>
+ 		<result column="orderTime" property="orderTime"/>
+ 		<result column="deliveryTime" property="deliveryTime"/>
+ 		
+ 		<!-- 对于关系映射可以使用association或collection进行配置 -->
+ 		<association property="user">
+ 			<result column="userId" property="userId"/>
+ 			<result column="userName" property="userName"/>
+ 			<result column="phone" property="phone"/>
+ 			<result column="address" property="address"/>
+ 		</association>
+ 		<association property="product">
+ 			<result column="proid" property="proid"/>
+ 			<result column="proname" property="proname"/>
+ 		</association>
+ 		
+ 	</resultMap>
+ 	
+ 	
+ 	<select id="findListByPager" parameterType="Pages" resultMap="orderInfoMap">
+ 		select * from orderInfo o left join user u on o.userId=u.userId left join product p on o.proid=p.proid
+ 		 <where>
+		    <if test="condition !=null and condition.orderState != null"> 
+			orderState like concat('%',concat(#{condition.orderState},'%')) 
+		    </if>
+		</where>
+ 		 order by o.orderId desc limit #{start},#{size}
+ 	</select>
+ 	
+ 	
+	 <!-- sql映射可以在接口中使用注解方式声明，具体参考ProductMapper的findTotal方法及mybatis相关文档 -->
+ 	 
+	 	 <select id="findTotalByPager" resultType="int">
+	 		select count(*) from orderInfo o,product p,user u where o.userId=u.userId and o.proid=p.proid
+		</select> 
+ 	
+ 	<insert id="add" parameterType="OrderInfo">
+		insert into orderInfo(userId,proid,num,orderState,orderTime,deliveryTime)
+		values(#{userId},#{proid},#{num},#{orderState},#{orderTime},#{deliveryTime})
+		<!-- goods_id是自增列，可以通过selectkey 查询自增列的值，并绑定到对于的属性中 -->
+		<selectKey keyColumn="orderId" keyProperty="orderId"
+			order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+	<update id="edit" parameterType="OrderInfo">
+		update orderInfo
+		<set>
+			<if test="user !=null and user.userId"> userId = #{user.userId},</if>
+			<if test="product !=null and product.proid"> proid = #{product.proid},</if>
+			<if test="num !=null"> num = #{num},</if>
+			<if test="orderState !=null"> orderState = #{orderState},</if>
+			<if test="orderTime !=null"> orderTime = #{orderTime},</if>
+			<if test="deliveryTime !=null"> deliveryTime = #{deliveryTime},</if>
+		</set>
+		where orderId = #{orderId}
+	</update>
+
+	<delete id="deleteByIds" parameterType="list">
+		<if test="list!=null and list.size !=0">
+			delete from orderInfo where orderId in
+			<foreach collection="list" item="orderInfo" open="("
+				separator="," close=")">
+				#{orderInfo.orderId}
+			</foreach>
+		</if>
+	</delete>
+ 	
+ </mapper>

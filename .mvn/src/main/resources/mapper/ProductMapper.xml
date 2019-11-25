@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="com.neuedu.catshop.mapper.ProductMapper">
+ 	<resultMap type="Product" id="productMap">
+ 		<id column="proid" property="proid"/>
+ 		<result column="proname" property="proname"/>
+ 		<result column="gender" property="gender"/>
+ 		<result column="age" property="age"/>
+ 		<result column="weight" property="weight"/>
+ 		<result column="yj" property="yj"/>
+ 		<result column="xj" property="xj"/>
+ 		<result column="kcsl" property="kcsl"/>
+ 		<result column="color" property="color"/>
+ 		<result column="ms" property="ms"/>
+ 		<result column="cd" property="cd"/>
+ 		<result column="tp" property="tp"/>
+ 		<result column="sjrq" property="sjrq"/>
+ 		<result column="state" property="state"/>
+ 		<result column="tp1" property="tp1"/>
+ 		<result column="tp2" property="tp2"/>
+ 		<result column="tp3" property="tp3"/>
+ 		
+ 		
+ 		<!-- 对于关系映射可以使用association或collection进行配置 -->
+ 		<association property="kind">
+ 			<result column="kindId" property="kindId"/>
+ 			<result column="kindName" property="kindName"/>
+ 			<result column="kindImage" property="kindImage"/>
+ 		</association>
+ 		
+ 	</resultMap>
+ 	<sql id="selectsql">
+	select * from product 
+	</sql>
+
+	<select id="findAll" resultType="Product">
+		<include refid="selectsql" />
+	</select>
+ 	
+ 	<select id="findListByPager" parameterType="Pages" resultMap="productMap">
+ 		select * from product p left join kind k on p.kindId=k.kindId 
+ 		<where>
+			<if test="condition !=null and condition.proname != null"> 
+			proname like concat('%',concat(#{condition.proname},'%')) 
+		    </if>
+		    <if test="condition !=null and condition.kind != null"> 
+			k.kindName like concat('%',concat(#{condition.kind},'%')) 
+		    </if>
+		</where>
+ 		order by p.proid desc limit #{start},#{size}
+ 	</select>
+ 
+ 	
+	 <!-- sql映射可以在接口中使用注解方式声明，具体参考ProductMapper的findTotal方法及mybatis相关文档 -->
+ 	 <!--
+	 	 <select id="findTotal" resultType="int">
+	 		select count(*) from product p,kind k where p.kindId=k.kindId
+		</select> 
+ 	-->
+ 	<insert id="add" parameterType="Product">
+		insert into product(proname,gender,age,weight,yj,xj,kcsl,color,ms,cd,tp,sjrq,state,kindId)
+		values(#{proname},#{gender},#{age},#{weight},#{yj},#{xj},#{kcsl},#{color},#{ms},#{cd},#{tp},#{sjrq},#{state},#{kind.kindId})
+		<!-- goods_id是自增列，可以通过selectkey 查询自增列的值，并绑定到对于的属性中 -->
+		<selectKey keyColumn="proid" keyProperty="proid"
+			order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+	<update id="edit" parameterType="Product">
+		update product
+		<set>
+			<if test="proname !=null"> proname = #{proname},</if>
+			<if test="gender !=null"> gender = #{gender},</if>
+			<if test="age !=null"> age = #{age},</if>
+			<if test="weight !=null"> weight = #{weight},</if>
+			<if test="yj !=null"> yj = #{yj},</if>
+			<if test="xj !=null"> xj = #{xj},</if>
+			<if test="kcsl !=null"> kcsl = #{kcsl},</if>
+			<if test="color !=null"> color = #{color},</if>
+			<if test="ms !=null"> ms = #{ms},</if>
+			<if test="cd !=null"> cd = #{cd},</if>
+			<if test="tp !=null"> tp = #{tp},</if>
+			<if test="sjrq !=null"> sjrq = #{sjrq},</if>
+			<if test="state !=null"> state = #{state},</if>
+			<if test="kind !=null and kind.kindId"> kindId = #{kind.kindId},</if>
+		</set>
+		where proid = #{proid}
+	</update>
+
+	<delete id="deleteByIds" parameterType="list">
+		<if test="list!=null and list.size !=0">
+			delete from product where proid in
+			<foreach collection="list" item="product" open="("
+				separator="," close=")">
+				#{product.proid}
+			</foreach>
+		</if>
+	</delete>
+ 	
+ </mapper>
